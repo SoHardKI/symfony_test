@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello JsController!{% endblock %}
+
+{% block body %}
+    <style>
+        .example-wrapper {
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+
+        .example-wrapper code {
+            background: #F5F5F5;
+            padding: 2px 6px;
+        }
+    </style>
+    <script
+            src="https://code.jquery.com/jquery-3.5.1.js"
+            integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var countries;
+            var currentPage;
+            var countPages;
+            var limit = 15;
+            var pageNum = 1;
+            var pagCount = 5;
+            $.ajax({
+                url: 'https://restcountries.eu/rest/v2/all',
+                method: 'GET',
+                async: false,
+                success: function (data) {
+                    countries = data;
+                    countPages = Math.floor(countries.length / limit);
+                    currentPage = countries.slice((pageNum - 1) * limit, pageNum * limit);
+                    printPage();
+                },
+                error: function (data) {
+                    alert('Something was wrong!');
+                },
+            });
+
+            function printPage() {
+                $('#info').removeClass('d-none');
+                currentPage.forEach(function (value) {
+                    $("#info").find('tbody')
+                        .append($('<tr>')
+                            .append($('<td>').append($('<img>').attr('src', value['flag']).css('width', '50'))).addClass('mdl-data-table__cell--non-numeric')
+                            .append($('<td>').text(value['name']).addClass('mdl-data-table__cell--non-numeric'))
+                            .append($('<td>').text(value['alpha2Code']).addClass('mdl-data-table__cell--non-numeric'))
+                        );
+                });
+
+                createPagination();
+            }
+
+            $('.pagination').on('click', '.pageChange', function (){
+                $('#info tbody').empty();
+                pageNum = parseInt($(this).val());
+                currentPage = countries.slice((pageNum - 1) * limit, pageNum * limit);
+                printPage();
+            });
+
+            function createPagination()
+            {
+                $('.pagination').empty();
+                let firstPage = parseInt(pageNum - Math.floor(pagCount / 2));
+                if(firstPage <= 1) {
+                    firstPage = 1;
+                } else {
+                    if(countPages - firstPage < pagCount) {
+                        firstPage = countPages - pagCount + 1;
+                        if(firstPage <=1) {
+                            firstPage = 1;
+                        }
+                    }
+                }
+
+                let lastPage = firstPage + pagCount - 1;
+                if(lastPage > countPages) {
+                    lastPage = countPages;
+                }
+                if(firstPage !== 1) {
+                    $('.pagination').append($('<button>').addClass('pageChange page-item').val(pageNum - 1).text('prev'))
+                }
+                for (let i = firstPage; i <= lastPage; ++i) {
+                    if (pageNum === i) {
+                        $('.pagination').append($('<button>').addClass('pageChange page-item btn-success').val(i).text(i));
+                    } else {
+                        $('.pagination').append($('<button>').addClass('pageChange page-item').val(i).text(i));
+                    }
+                }
+                if (lastPage < countPages) {
+                    $('.pagination').append($('<button>').addClass('pageChange page-item').val(pageNum + 1).text('next'))
+                }
+            }
+        });
+
+    </script>
+
+    <table id="info" class="mdl-data-table mdl-js-data-table mx-auto mt-5 d-none">
+        <thead>
+        <tr>
+            <th class="mdl-data-table__cell--non-numeric">Flag</th>
+            <th class="mdl-data-table__cell--non-numeric">Name</th>
+            <th class="mdl-data-table__cell--non-numeric">alpha2code</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+        <ul class="pagination mt-3 mx-auto d-table">
+        </ul>
+{% endblock %}
